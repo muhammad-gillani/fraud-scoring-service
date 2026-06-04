@@ -94,7 +94,7 @@ def train():
         mlflow.log_artifact(schema_path)
 
         # Log model
-        mlflow.xgboost.log_model(model, artifact_path="model")
+        # mlflow.xgboost.log_model(model, artifact_path="model") ## Phase 2: MLflow model registry
 
         run_id = mlflow.active_run().info.run_id
         print(f"\nMLflow run_id: {run_id}")
