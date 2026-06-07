@@ -15,7 +15,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from xgboost import XGBClassifier
 
-MODEL_PATH = os.getenv("MODEL_PATH", "models/fraud_model.json")
+import mlflow
+import mlflow.xgboost
+
+MLFLOW_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+MODEL_NAME = os.getenv("MODEL_NAME", "FraudModel")
+MODEL_ALIAS = os.getenv("MODEL_ALIAS", "production")
 SCHEMA_PATH = os.getenv("SCHEMA_PATH", "models/feature_columns.json")
 FRAUD_THRESHOLD = float(os.getenv("FRAUD_THRESHOLD", "0.5"))
 
@@ -26,13 +31,12 @@ _feature_columns: list[str] | None = None
 
 def load_artifacts():
     global _model, _feature_columns
-    if not Path(MODEL_PATH).exists():
-        raise FileNotFoundError(f"Model not found at {MODEL_PATH}. Run `make train` first.")
-    _model = XGBClassifier()
-    _model.load_model(MODEL_PATH)
+    mlflow.set_tracking_uri(MLFLOW_URI)
+    model_uri = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
+    _model = mlflow.xgboost.load_model(model_uri)
     with open(SCHEMA_PATH) as f:
         _feature_columns = json.load(f)
-    print(f"Model loaded: {len(_feature_columns)} features | threshold={FRAUD_THRESHOLD}")
+    print(f"Model loaded from registry: {model_uri} | {len(_feature_columns)} features | threshold={FRAUD_THRESHOLD}")
 
 
 @asynccontextmanager
