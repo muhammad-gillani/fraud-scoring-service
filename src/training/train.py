@@ -113,6 +113,10 @@ def train():
     with open(schema_path, "w") as f:
         json.dump(feature_columns, f)
 
+    # Generate evaluation report and log to same MLflow run
+    from src.training.evaluate import generate_report
+    generate_report(run_id)
+
     print(f"\nSaved model  → {model_path}")
     print(f"Saved schema → {schema_path}")
     print(f"\nMLflow UI    → {MLFLOW_URI}")
